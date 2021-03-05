@@ -5,6 +5,7 @@
 
         <v-spacer></v-spacer>
 
+        <NavbarSearch />
         <NavbarRegister />
         <NavbarLogin />
         <NavbarLogout />
@@ -15,6 +16,7 @@
 import NavbarLogin from "./NavbarLogin.vue";
 import NavbarRegister from "./NavbarRegister.vue";
 import NavbarLogout from "./NavbarLogout.vue";
+import NavbarSearch from "./NavbarSearch.vue";
 
 export default {
     name: "Navbar",
@@ -23,6 +25,7 @@ export default {
         NavbarLogin,
         NavbarRegister,
         NavbarLogout,
+        NavbarSearch,
     },
 };
 </script>

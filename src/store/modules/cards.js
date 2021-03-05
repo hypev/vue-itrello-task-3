@@ -37,6 +37,18 @@ const cards = {
             });
         },
 
+        search({ commit }, queryName) {
+            axios
+                .get(BASE_URL + "/search", {
+                    params: {
+                        q: queryName,
+                    },
+                })
+                .then((response) => {
+                    commit("SET_CARDS", response.data);
+                });
+        },
+
         add({ commit }, card) {
             axios.post(BASE_URL, card).then((response) => {
                 commit("ADD_CARD", response.data);

@@ -3,6 +3,7 @@ import VueRouter from "vue-router";
 
 import Home from "../views/Home.vue";
 import Card from "../views/Card.vue";
+import Search from "../views/Search.vue";
 
 Vue.use(VueRouter);
 
@@ -16,6 +17,12 @@ const routes = [
         path: "/cards/:id",
         name: "Card",
         component: Card,
+    },
+    {
+        path: "/search",
+        name: "Search",
+        component: Search,
+        props: (route) => ({ query: route.query.q }),
     },
 ];
 
