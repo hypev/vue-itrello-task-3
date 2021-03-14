@@ -1,8 +1,6 @@
-import axios from "axios";
+import CardsService from "../services/cards.service";
 
-const BASE_URL = "http://localhost:3228/api/cards";
-
-const cards = {
+const Cards = {
     namespaced: true,
 
     state: {
@@ -32,38 +30,37 @@ const cards = {
 
     actions: {
         all({ commit }) {
-            axios.get(BASE_URL).then((response) => {
-                commit("SET_CARDS", response.data);
+            return CardsService.all().then((data) => {
+                commit("SET_CARDS", data);
+                return data;
             });
         },
 
         search({ commit }, queryName) {
-            axios
-                .get(BASE_URL + "/search", {
-                    params: {
-                        q: queryName,
-                    },
-                })
-                .then((response) => {
-                    commit("SET_CARDS", response.data);
-                });
+            return CardsService.search(queryName).then((data) => {
+                commit("SET_CARDS", data);
+                return data;
+            });
         },
 
         add({ commit }, card) {
-            axios.post(BASE_URL, card).then((response) => {
-                commit("ADD_CARD", response.data);
+            return CardsService.add(card).then((data) => {
+                commit("ADD_CARD", data);
+                return data;
             });
         },
 
         edit({ commit }, card) {
-            axios.put(BASE_URL + `/${card.id}`, card).then((response) => {
-                commit("EDIT_CARD", response.data);
+            return CardsService.edit(card).then((data) => {
+                commit("EDIT_CARD", data);
+                return data;
             });
         },
 
         delete({ commit }, id) {
-            axios.delete(BASE_URL + `/${id}`).then(() => {
+            return CardsService.delete(id).then((data) => {
                 commit("DELETE_CARD", id);
+                return data;
             });
         },
     },
@@ -73,4 +70,4 @@ const cards = {
     },
 };
 
-export default cards;
+export default Cards;

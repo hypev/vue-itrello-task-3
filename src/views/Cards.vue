@@ -1,9 +1,12 @@
 <template>
-    <div class="search">
+    <div class="cards">
         <v-row>
             <v-col cols="6" offset="3">
-                <v-card elevation="6">
-                    <v-card-title> Search results for: "{{ queryName }}" </v-card-title>
+                <v-card elevation="6" class="d-flex justify-center align-center flex-column">
+                    <v-text-field label="Name of card" style="width: 75%" class="mt-8" v-model="name"></v-text-field>
+                    <v-card-actions>
+                        <v-btn text color="primary" @click="addProxy">Add</v-btn>
+                    </v-card-actions>
                 </v-card>
             </v-col>
         </v-row>
@@ -39,9 +42,6 @@
                     </v-speed-dial>
                 </v-card>
             </v-col>
-            <v-col cols="6" offset="3" v-if="cards.length == 0">
-                <h1 style="text-align: center">Results Not Found</h1>
-            </v-col>
         </v-row>
     </div>
 </template>
@@ -51,7 +51,7 @@ import { mapGetters, mapActions } from "vuex";
 import { formatDate } from "../helpers";
 
 export default {
-    name: "Home",
+    name: "Cards",
 
     data() {
         return {
@@ -63,43 +63,48 @@ export default {
         };
     },
 
-    computed: {
-        ...mapGetters({
-            cards: "cards/cards",
-        }),
-
-        queryName() {
-            return this.$route.query.q;
-        },
-    },
+    computed: mapGetters({
+        cards: "cards/cards",
+    }),
 
     created() {
-        this.getCards();
-    },
-
-    watch: {
-        queryName() {
-            this.getCards();
-        },
+        this.getCards().catch(() => {
+            this.alert({
+                color: "red",
+                text: "Something went wrong!",
+            });
+        });
     },
 
     methods: {
         formatDate,
 
         ...mapActions({
-            getSearchCards: "cards/search",
+            getCards: "cards/all",
             delete: "cards/delete",
+            add: "cards/add",
             edit: "cards/edit",
             alert: "alert/alert",
         }),
 
-        getCards() {
-            this.getSearchCards(this.queryName).catch(() => {
-                this.alert({
-                    color: "red",
-                    text: "Something went wrong!",
+        addProxy() {
+            this.add({
+                name: this.name,
+                addedDate: new Date(),
+            })
+                .then(() => {
+                    this.alert({
+                        color: "primary",
+                        text: "Succesfully added!",
+                    });
+                    this.name = "";
+                })
+                .catch(() => {
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
                 });
-            });
         },
 
         saveProxy(card) {

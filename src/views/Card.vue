@@ -12,10 +12,10 @@
                     </v-card-subtitle>
                     <v-card-actions v-if="!editCardMode">
                         <v-btn text color="success" @click="editCardMode = true">Edit</v-btn>
-                        <v-btn text color="danger" @click="deleteCurrentCard">Delete</v-btn>
+                        <v-btn text color="danger" @click="deleteCardProxy">Delete</v-btn>
                     </v-card-actions>
                     <v-card-actions v-else>
-                        <v-btn text color="success" @click="saveCurrentCard">Save</v-btn>
+                        <v-btn text color="success" @click="saveCardProxy">Save</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
@@ -24,7 +24,7 @@
                 <v-card elevation="6" class="d-flex justify-center align-center flex-column">
                     <v-text-field label="Name of task" style="width: 75%" class="mt-8" v-model="newTaskText"></v-text-field>
                     <v-card-actions>
-                        <v-btn text color="primary" @click="addTaskToCard">Add</v-btn>
+                        <v-btn text color="primary" @click="addTaskProxy">Add</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-col>
@@ -39,10 +39,10 @@
                         {{ formatDate(task.addedDate) }}
                     </v-card-subtitle>
                     <v-card-actions v-if="!(editId != task.id || !editMode)">
-                        <v-btn text color="primary" @click="saveTask(task)">Save</v-btn>
+                        <v-btn text color="primary" @click="saveTaskProxy(task)">Save</v-btn>
                     </v-card-actions>
                     <v-card-text>
-                        <v-switch v-model="task.done" inset :label="task.done ? 'Done' : 'In Progress'" @change="saveTask(task)"></v-switch>
+                        <v-switch v-model="task.done" inset :label="task.done ? 'Done' : 'In Progress'" @change="saveTaskProxy(task)"></v-switch>
                     </v-card-text>
 
                     <v-speed-dial :id="task.id" top right direction="bottom" transition="scale-transition">
@@ -56,7 +56,7 @@
                         <v-btn fab dark small color="green" @click="editTaskToggle(task.id)">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
-                        <v-btn fab dark small color="red" @click="deleteCardAction(task)">
+                        <v-btn fab dark small color="red" @click="deleteTaskProxy(task)">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </v-speed-dial>
@@ -68,7 +68,8 @@
 
 <script>
 import { mapActions } from "vuex";
-import axios from "axios";
+import { formatDate } from "../helpers";
+import CardsService from "../services/cards.service";
 
 export default {
     name: "Card",
@@ -90,84 +91,148 @@ export default {
     },
 
     methods: {
-        formatDate(date) {
-            return new Date(Date.parse(date)).toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-        },
-
-        getCard() {
-            axios
-                .get(`http://localhost:3228/api/cards/${this.$route.params.id}`)
-                .then((response) => {
-                    this.card = response.data;
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        },
-
-        getTasks() {
-            this.tasks = axios
-                .get(`http://localhost:3228/api/cards/${this.$route.params.id}/tasks`)
-                .then((response) => {
-                    this.tasks = response.data;
-                })
-                .catch((err) => {
-                    console.log(err);
-                });
-        },
+        formatDate,
 
         ...mapActions({
             deleteCard: "cards/delete",
             editCard: "cards/edit",
-
             addTask: "tasks/add",
             editTask: "tasks/edit",
             deleteTask: "tasks/delete",
+            alert: "alert/alert",
         }),
 
-        deleteCurrentCard() {
-            this.deleteCard(this.card.id);
-            this.$router.push("/");
+        getCard() {
+            CardsService.get(this.$route.params.id)
+                .then((data) => {
+                    this.card = data;
+                })
+                .catch(() => {
+                    this.$router.push("/cards");
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
         },
 
-        saveCurrentCard() {
-            this.editCard(this.card);
-            this.editCardMode = false;
+        getTasks() {
+            CardsService.tasks(this.$route.params.id)
+                .then((data) => {
+                    this.tasks = data;
+                })
+                .catch(() => {
+                    this.$router.push("/cards");
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
         },
 
-        addTaskToCard() {
+        deleteCardProxy() {
+            this.deleteCard(this.card.id)
+                .then(() => {
+                    this.alert({
+                        color: "primary",
+                        text: "Succesfully deleted!",
+                    });
+                    this.$router.push("/");
+                })
+                .catch(() => {
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
+        },
+
+        saveCardProxy() {
+            this.editCard(this.card)
+                .then(() => {
+                    this.alert({
+                        color: "primary",
+                        text: "Succesfully saved!",
+                    });
+                    this.editCardMode = false;
+                })
+                .catch(() => {
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
+        },
+
+        addTaskProxy() {
             let task = {
                 text: this.newTaskText,
                 addedDate: new Date(),
                 done: false,
                 card: this.card,
             };
-            this.addTask(task);
-            this.tasks.push(task);
-            this.newTaskText = "";
+            this.addTask(task)
+                .then((data) => {
+                    this.tasks.push({
+                        id: data.id,
+                        name: data.name,
+                        addedDate: data.addedDate,
+                        done: data.done,
+                    });
+                    this.alert({
+                        color: "primary",
+                        text: "Succesfully added!",
+                    });
+                    this.newTaskText = "";
+                })
+                .catch(() => {
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
         },
 
-        saveTask(task) {
-            this.editTask(task);
-            this.editMode = false;
-            this.editId = null;
+        saveTaskProxy(task) {
+            this.editTask(task)
+                .then(() => {
+                    this.alert({
+                        color: "primary",
+                        text: "Succesfully saved!",
+                    });
+                    this.editMode = false;
+                    this.editId = null;
+                })
+                .catch(() => {
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
+        },
+
+        deleteTaskProxy(task) {
+            this.deleteTask(task.id)
+                .then(() => {
+                    this.alert({
+                        color: "primary",
+                        text: "Succesfully deleted!",
+                    });
+                    this.tasks = this.tasks.filter((taskIter) => {
+                        return task.id != taskIter.id;
+                    });
+                })
+                .catch(() => {
+                    this.alert({
+                        color: "red",
+                        text: "Something went wrong!",
+                    });
+                });
         },
 
         editTaskToggle(id) {
             this.editMode = true;
             this.editId = id;
-        },
-
-        deleteCardAction(task) {
-            this.deleteTask(task.id);
-            this.tasks = this.tasks.filter((taskIter) => {
-                return task.id != taskIter.id;
-            });
         },
     },
 };

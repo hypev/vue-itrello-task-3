@@ -1,8 +1,6 @@
-import axios from "axios";
+import TasksService from "../services/tasks.service";
 
-const BASE_URL = "http://localhost:3228/api/tasks";
-
-const tasks = {
+const Tasks = {
     namespaced: true,
     state: {
         tasks: [],
@@ -29,26 +27,30 @@ const tasks = {
     },
     actions: {
         all({ commit }) {
-            axios.get(BASE_URL).then((response) => {
-                commit("SET_TASKS", response.data);
+            return TasksService.all().then((data) => {
+                commit("SET_TASKS", data);
+                return data;
             });
         },
 
         add({ commit }, task) {
-            axios.post(BASE_URL, task).then((response) => {
-                commit("ADD_TASK", response.data);
+            return TasksService.add(task).then((data) => {
+                commit("ADD_TASK", data);
+                return data;
             });
         },
 
         edit({ commit }, task) {
-            axios.put(BASE_URL + `/${task.id}`, task).then((response) => {
-                commit("EDIT_TASK", response.data);
+            return TasksService.edit(task).then((data) => {
+                commit("EDIT_TASK", data);
+                return data;
             });
         },
 
         delete({ commit }, id) {
-            axios.delete(BASE_URL + `/${id}`).then(() => {
+            return TasksService.delete(id).then((data) => {
                 commit("DELETE_TASK", id);
+                return data;
             });
         },
     },
@@ -57,4 +59,4 @@ const tasks = {
     },
 };
 
-export default tasks;
+export default Tasks;

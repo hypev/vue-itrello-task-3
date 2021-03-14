@@ -2,44 +2,48 @@
     <div class="home">
         <v-row>
             <v-col cols="6" offset="3">
-                <v-card elevation="6" class="d-flex justify-center align-center flex-column">
-                    <v-text-field label="Name of card" style="width: 75%" class="mt-8" v-model="name"></v-text-field>
-                    <v-card-actions>
-                        <v-btn text color="primary" @click="add">Add</v-btn>
-                    </v-card-actions>
-                </v-card>
+                <v-img
+                    class="greyscale d-flex align-center"
+                    :aspect-ratio="16 / 4"
+                    width="100%"
+                    content-class="d-flex flex-column align-center justify-center"
+                    src="https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1355&q=80"
+                >
+                    <v-card>
+                        <v-card-title>
+                            Manage with your tasks
+                        </v-card-title>
+                    </v-card>
+                    <v-btn class="mt-8" color="primary" to="/register">Register</v-btn>
+                </v-img>
             </v-col>
         </v-row>
         <v-row>
-            <v-col cols="3" v-for="card in cards" :key="card.id">
-                <v-card elevation="6">
-                    <v-card-title>
-                        <span v-if="editId != card.id || !editMode">{{ card.name }}</span>
-                        <v-text-field v-model="card.name" v-else></v-text-field>
-                    </v-card-title>
-                    <v-card-subtitle>
-                        {{ formatDate(card.addedDate) }}
-                    </v-card-subtitle>
-                    <v-card-actions>
-                        <v-btn text color="primary" v-if="editId != card.id || !editMode" :to="`/cards/${card.id}`">Details</v-btn>
-                        <v-btn text color="success" v-else @click="save(card)">Save</v-btn>
-                    </v-card-actions>
+            <v-col cols="6" offset="3">
+                <v-card>
+                    <v-list two-line>
+                        <template v-for="(item, index) in items">
+                            <v-list-item :key="item.title">
+                                <v-list-item-avatar>
+                                    <v-icon :color="item.color">
+                                        {{ item.icon }}
+                                    </v-icon>
+                                </v-list-item-avatar>
 
-                    <v-speed-dial :id="card.id" top right direction="bottom" transition="scale-transition">
-                        <template v-slot:activator>
-                            <v-btn :id="card.id" color="white" dark fab text>
-                                <v-icon>
-                                    mdi-dots-vertical
-                                </v-icon>
-                            </v-btn>
+                                <v-list-item-content>
+                                    <v-list-item-title v-text="item.title"></v-list-item-title>
+                                    <v-list-item-subtitle v-text="item.subtitle"></v-list-item-subtitle>
+                                </v-list-item-content>
+
+                                <v-list-item-icon>
+                                    <v-icon color="green">
+                                        mdi-check
+                                    </v-icon>
+                                </v-list-item-icon>
+                            </v-list-item>
+                            <v-divider v-if="index < items.length - 1" :key="index"></v-divider>
                         </template>
-                        <v-btn fab dark small color="green" @click="editToggle(card.id)">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                        <v-btn fab dark small color="red" @click="deleteCard(card.id)">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </v-speed-dial>
+                    </v-list>
                 </v-card>
             </v-col>
         </v-row>
@@ -47,74 +51,20 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from "vuex";
-
 export default {
     name: "Home",
 
     data() {
         return {
-            fab: false,
-            name: "",
-            editMode: false,
-            editId: null,
-            editName: "",
+            items: [
+                { title: "Quick Access", subtitle: "Fast and easy", icon: "mdi-clock", color: "blue" },
+                { title: "Great Management", subtitle: "Grouping your tasks", icon: "mdi-folder", color: "cyan" },
+                { title: "Statistics", subtitle: "Monitoring with your success", icon: "mdi-chart-donut", color: "green" },
+                { title: "Cloud Service", subtitle: "Store your data in cloud", icon: "mdi-cloud", color: "red" },
+            ],
         };
-    },
-
-    computed: mapGetters({
-        cards: "cards/cards",
-    }),
-
-    created() {
-        this.getCards();
-    },
-
-    methods: {
-        formatDate(date) {
-            return new Date(Date.parse(date)).toLocaleDateString("en-US", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-        },
-
-        ...mapActions({
-            getCards: "cards/all",
-            deleteCard: "cards/delete",
-            addCard: "cards/add",
-            editCard: "cards/edit",
-        }),
-
-        add() {
-            this.addCard({
-                name: this.name,
-                addedDate: new Date(),
-            });
-            this.name = "";
-        },
-
-        save(card) {
-            this.editCard(card);
-            this.editMode = false;
-            this.editId = null;
-        },
-
-        editToggle(id) {
-            this.editMode = true;
-            this.editId = id;
-        },
     },
 };
 </script>
 
-<style lang="scss">
-.v-speed-dial {
-    position: absolute !important;
-}
-
-.v-btn--floating {
-    position: relative;
-}
-</style>
+<style></style>
